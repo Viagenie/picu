@@ -42,11 +42,10 @@ def cp_to_uchar_array(cp):
     return UCharArray_Single(cp)
 
 def uchar_array_to_uni(arr, len=None):
-    # XXX support non-BMP
-    return u''.join(unichr(c) for (i, c) in enumerate(arr) if (len is None or i < len))
+    return u''.join(wide_unichr(c) for (i, c) in enumerate(arr) if (len is None or i < len))
 
 def uchar_p_to_uni(arr, len=None):
-    return u''.join(unichr(arr[i]) for i in range(len.value))
+    return u''.join(wide_unichr(arr[i]) for i in range(len.value))
 
 
 def str_to_uchar_array_with_len(s):
@@ -60,6 +59,11 @@ def uchar_array(alen):
 
 def str_to_uchar_array(s):
     return str_to_uchar_array_with_len(s)[0]
+
+if sys.version_info.major > 2:
+    text_type = str
+else:
+    text_type = basestring
 
 if sys.maxunicode > 65535:
     wide_unichr = chr if sys.version_info.major > 2 else unichr
@@ -272,7 +276,7 @@ def icu_set_factory(icu):
         def __contains__(self, cp):
             if isinstance(cp, int):
                 return icu.uset_contains(self._uset, cp)
-            elif isinstance(cp, unicode) and len(cp) == 1:
+            elif isinstance(cp, text_type) and len(cp) == 1:
                 return icu.uset_contains(self._uset, ord(cp[0]))
             else:
                 raise IllegalArgument("cp must be an integer or a single unicode character")
@@ -676,14 +680,14 @@ class ICUCommon(object):
         return self.std_icu_func(self._unorm2_normalize)
 
     def isNormalized(self, s, normalizer):
-        assert isinstance(s, unicode)
+        assert isinstance(s, text_type)
         unorm2_isNormalized = self.std_icu_func(self._getfunc('unorm2_isNormalized',
                                                               (c_void_p, UChar_p, c_uint32, UErrorCode_p),
                                                               UBool))
         return unorm2_isNormalized(normalizer, *str_to_uchar_array_with_len(s))
 
     def normalize(self, s, normalizer):
-        assert isinstance(s, unicode)
+        assert isinstance(s, text_type)
         src, srclen = str_to_uchar_array_with_len(s)
         dest, destlen = uchar_array(srclen)
         err = UErrorCode(0)
@@ -707,7 +711,7 @@ class ICUCommon(object):
 
 
     def foldcase(self, s, option=U_FOLD_CASE_DEFAULT):
-        assert isinstance(s, unicode)
+        assert isinstance(s, text_type)
         src, srclen = str_to_uchar_array_with_len(s)
         dest, destlen = uchar_array(5*srclen) # allocate more space
         rv = self.u_strFoldCase(pointer(dest), destlen, byref(src), srclen, option)
@@ -717,7 +721,7 @@ class ICUCommon(object):
     #### Properties ####
 
     def property_by_name(self, propname):
-        p = self.getPropertyEnum(propname)
+        p = self.getPropertyEnum(propname.encode('ascii'))
         if p == UCHAR_INVALID_CODE:
             raise PropertyNotFound("unknown property (%s)" % propname)
         return ICUProperty(self, p)
@@ -725,10 +729,10 @@ class ICUCommon(object):
     def get_prop_value(self, cp, propname, prop_type):
         prop = self.property_by_name(propname)
         pv = self.getIntPropertyValue(cp, prop.enum)
-        return self.getPropertyValueName(prop.enum, pv, prop_type)
+        return self.getPropertyValueName(prop.enum, pv, prop_type).decode('ascii')
 
     def get_script(self, cp, prop_type=U_LONG_PROPERTY_NAME):
-        if isinstance(cp, unicode):
+        if isinstance(cp, text_type):
             cp = ord(cp)
         return self.get_prop_value(cp, 'Sc', prop_type)
 
@@ -820,7 +824,7 @@ class ICUCommon(object):
 
 
     def idna_process(self, s, func, _lowlvl_func, uidna=None):
-        assert isinstance(s, unicode)
+        assert isinstance(s, text_type)
         src, srclen = str_to_uchar_array_with_len(s)
         dest, destlen = uchar_array(64)
         uidna = uidna or self.open_uts46()
