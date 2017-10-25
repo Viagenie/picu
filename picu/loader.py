@@ -62,7 +62,7 @@ def str_to_uchar_array(s):
     return str_to_uchar_array_with_len(s)[0]
 
 if sys.maxunicode > 65535:
-    wide_unichr = unichr
+    wide_unichr = chr if sys.version_info.major > 2 else unichr
 else:
     def wide_unichr(ord):
         if ord > 0xffff:
@@ -170,7 +170,7 @@ def icu_re_factory(icu):
             try:
                 regex = icu.uregex_open(*args)
                 return _ICURegex(regex)
-            except PICUException, e:
+            except PICUException as e:
                 raise re.error(str(e))
 
         @classmethod
@@ -417,11 +417,11 @@ class ICUCommon(object):
         err = UErrorCode(0)
         rv = self._u_charName(cp, option, None, 0, pointer(err))
         if rv == 0:
-            return ""
+            return u""
 
         dest, destlen = create_string_buffer(rv+1), rv # allocate the right amount of buffer
         self.u_charName(cp, option, dest, destlen+1)
-        return dest.value
+        return dest.value.decode('ascii')
 
     def charAge(self, cp):
         func = getattr(self.uc_dll, "u_charAge_%s" % self.ver)
