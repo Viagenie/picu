@@ -861,6 +861,10 @@ class ICUCommon(object):
 
 
 KNOWN_ICU_VERSIONS = (
+    '60',  # Unicode 10.0
+    '59',
+    '58',  # Unicode 9.0
+    '57',
     '56',  # Unicode 8.0
     '55',
     '54',  # Unicode 7.0
