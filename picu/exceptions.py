@@ -19,7 +19,7 @@ class IDNAException(PICUException, UnicodeError):
 
         # parse IDNA error codes
         err_labels = []
-        for ecode, elabel in self.ERROR_MESSAGES.iteritems():
+        for ecode, elabel in self.ERROR_MESSAGES.items():
             if (idna_errors & ecode):
                 err_labels.append(elabel)
                 idna_errors = idna_errors & ~ecode

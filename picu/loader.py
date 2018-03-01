@@ -62,6 +62,7 @@ def str_to_uchar_array(s):
 
 if sys.version_info.major > 2:
     text_type = str
+    long = int
 else:
     text_type = basestring
 
@@ -311,6 +312,8 @@ def icu_set_factory(icu):
             rv = icu.uset_toPattern_raw(self._uset, dest, destlen, 1, pointer(err))
             return uchar_array_to_uni(dest[:rv])
 
+        __str__ = __unicode__
+
         # we always do deepcopy
         def __copy__(self):
             return self.__class__(uset2)
@@ -327,6 +330,8 @@ class ICUProperty(object):
 
     def __unicode__(self):
         return self.name
+
+    __str__ = __unicode__
 
     @property
     def name(self):
@@ -749,7 +754,7 @@ class ICUCommon(object):
 
         for i in range(n):
             out.append(self.getPropertyValueName(script_prop.enum, scripts[i],
-                                                 prop_type))
+                                                 prop_type).decode('utf-8'))
 
         return out
 
