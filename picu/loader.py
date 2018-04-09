@@ -53,16 +53,20 @@ def str_to_uchar_array_with_len(s):
     UCharArray = c_uint16 * slen
     return UCharArray(*(ord(c) for c in s)), slen
 
+
 def uchar_array(alen):
     UCharArray = c_uint16 * alen
     return UCharArray(), alen
 
+
 def str_to_uchar_array(s):
     return str_to_uchar_array_with_len(s)[0]
 
+# Declare some compats variables
 if sys.version_info.major > 2:
     text_type = str
     long = int
+    xrange = range
 else:
     text_type = basestring
 
@@ -73,7 +77,8 @@ else:
         if ord > 0xffff:
             return (r'\U%08X' % ord).decode('unicode-escape')
         else:
-            return unichr(ord)
+            r_chr = chr if sys.version_info.major > 2 else unichr
+            return r_chr(ord)
 
 
 def icu_re_factory(icu):
