@@ -1,6 +1,7 @@
 import collections
 import functools
 
+
 class memoized(object):
     """
     Decorator. Caches a function's return value each time it is called.

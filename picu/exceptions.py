@@ -4,8 +4,10 @@ from . import constants
 class PICUException(Exception):
     pass
 
+
 class IllegalArgument(PICUException):
     pass
+
 
 class PropertyNotFound(PICUException):
     pass
@@ -20,7 +22,7 @@ class IDNAException(PICUException, UnicodeError):
         # parse IDNA error codes
         err_labels = []
         for ecode, elabel in self.ERROR_MESSAGES.items():
-            if (idna_errors & ecode):
+            if idna_errors & ecode:
                 err_labels.append(elabel)
                 idna_errors = idna_errors & ~ecode
         if idna_errors:

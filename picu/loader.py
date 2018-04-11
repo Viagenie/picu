@@ -12,6 +12,7 @@ from picu.constants import *
 
 UChar32 = c_int32
 UChar32_p = POINTER(UChar32)
+UCharArray_Single = c_uint16 * 1
 UBool = c_int8
 UChar = c_uint16
 UChar_p = c_void_p
@@ -19,48 +20,6 @@ UErrorCode = c_int
 UErrorCode_p = POINTER(UErrorCode)
 VersionInfo = c_uint8 * 4
 c_int32_p = POINTER(c_int32)
-
-
-class UIDNAInfo(Structure):
-    _fields_ = [("size", c_int16),
-                ("isTransitionalDifferent", UBool),
-                ("reservedB3", UBool),
-                ("errors", c_uint32),
-                ("reservedI2", c_int32),
-                ("reservedI3", c_int32)]
-
-def new_UIDNAInfo():
-    return UIDNAInfo(sizeof(UIDNAInfo), 0, 0, 0, 0, 0)
-
-
-def U_SUCCESS(err_code):
-    return err_code <= 0
-
-
-UCharArray_Single = c_uint16 * 1
-def cp_to_uchar_array(cp):
-    return UCharArray_Single(cp)
-
-def uchar_array_to_uni(arr, len=None):
-    return u''.join(wide_unichr(c) for (i, c) in enumerate(arr) if (len is None or i < len))
-
-def uchar_p_to_uni(arr, len=None):
-    return u''.join(wide_unichr(arr[i]) for i in range(len.value))
-
-
-def str_to_uchar_array_with_len(s):
-    slen = len(s)
-    UCharArray = c_uint16 * slen
-    return UCharArray(*(ord(c) for c in s)), slen
-
-
-def uchar_array(alen):
-    UCharArray = c_uint16 * alen
-    return UCharArray(), alen
-
-
-def str_to_uchar_array(s):
-    return str_to_uchar_array_with_len(s)[0]
 
 # Declare some compats variables
 if sys.version_info.major > 2:
@@ -79,6 +38,50 @@ else:
         else:
             r_chr = chr if sys.version_info.major > 2 else unichr
             return r_chr(ord)
+
+
+class UIDNAInfo(Structure):
+    _fields_ = [("size", c_int16),
+                ("isTransitionalDifferent", UBool),
+                ("reservedB3", UBool),
+                ("errors", c_uint32),
+                ("reservedI2", c_int32),
+                ("reservedI3", c_int32)]
+
+
+def new_UIDNAInfo():
+    return UIDNAInfo(sizeof(UIDNAInfo), 0, 0, 0, 0, 0)
+
+
+def U_SUCCESS(err_code):
+    return err_code <= 0
+
+
+def cp_to_uchar_array(cp):
+    return UCharArray_Single(cp)
+
+
+def uchar_array_to_uni(arr, len=None):
+    return u''.join(wide_unichr(c) for (i, c) in enumerate(arr) if (len is None or i < len))
+
+
+def uchar_p_to_uni(arr, len=None):
+    return u''.join(wide_unichr(arr[i]) for i in range(len.value))
+
+
+def str_to_uchar_array_with_len(s):
+    slen = len(s)
+    UCharArray = c_uint16 * slen
+    return UCharArray(*(ord(c) for c in s)), slen
+
+
+def uchar_array(alen):
+    UCharArray = c_uint16 * alen
+    return UCharArray(), alen
+
+
+def str_to_uchar_array(s):
+    return str_to_uchar_array_with_len(s)[0]
 
 
 def icu_re_factory(icu):
@@ -120,7 +123,6 @@ def icu_re_factory(icu):
         def start(self):
             return icu.uregex_start(self._regex._icu_regex, 0)
 
-
     class _ICURegex(object):
         """
         http://icu-project.org/apiref/icu4c/uregex_8h.html
@@ -137,7 +139,6 @@ def icu_re_factory(icu):
             pat_arr = icu.uregex_pattern(self._icu_regex, pointer(patlength))
             return uchar_p_to_uni(pat_arr, patlength)
 
-
         def match(self, string, flags=0, index=0):
             # we always do an implicit clone
             regex = self.clone(string)
@@ -146,7 +147,6 @@ def icu_re_factory(icu):
                 return _ICUMatchObject(regex)
             else:
                 return None
-
 
         def search(self, string, flags=0, index=0):
             # we always do an implicit clone
@@ -169,7 +169,6 @@ def icu_re_factory(icu):
             if text is not None:
                 regex._settext(text)
             return regex
-
 
     class _ICURegexModuleAPI(object):
         """ This should quack like the built-in `re` module. """
@@ -449,7 +448,6 @@ class ICUCommon(object):
         func(pointer(ver))
         return '.'.join(str(v) for v in ver[:3])
 
-
     #### USet ####
     @property
     def uset_openPattern(self):
@@ -534,7 +532,6 @@ class ICUCommon(object):
         return self._getfunc('uset_toPattern',
                              (c_void_p, UChar_p, c_int32, UBool, UErrorCode_p),
                              c_int32)
-
 
     #### URegex ####
     @property
@@ -633,9 +630,6 @@ class ICUCommon(object):
                           (c_void_p, c_int32, UErrorCode_p), c_int32,
                           dll=self.i18n_dll))
 
-
-
-
     @memoized
     def _getfunc(self, funcname, argtypes=None, restype=None, dll=None):
         dll = dll or self.uc_dll
@@ -647,7 +641,6 @@ class ICUCommon(object):
         if restype:
             func.restype = restype
         return func
-
 
     #### Normalization ####
     @property
@@ -684,6 +677,7 @@ class ICUCommon(object):
         return self._getfunc('unorm2_normalize',
                              (c_void_p, UChar_p, c_uint32, UChar_p, c_uint32, UErrorCode_p),
                              c_int)
+
     @property
     @memoized
     def unorm2_normalize(self):
@@ -710,7 +704,6 @@ class ICUCommon(object):
         rv = self.unorm2_normalize(normalizer, src, srclen, pointer(dest), destlen)
         return uchar_array_to_uni(dest[:rv])
 
-
     #### Case Folding ####
     @property
     @memoized
@@ -719,7 +712,6 @@ class ICUCommon(object):
                                                (UChar_p, c_int32, UChar_p, c_int32, c_uint32, UErrorCode_p),
                                                c_int32))
 
-
     def foldcase(self, s, option=U_FOLD_CASE_DEFAULT):
         assert isinstance(s, text_type)
         src, srclen = str_to_uchar_array_with_len(s)
@@ -727,9 +719,7 @@ class ICUCommon(object):
         rv = self.u_strFoldCase(pointer(dest), destlen, byref(src), srclen, option)
         return uchar_array_to_uni(dest[:rv])
 
-
     #### Properties ####
-
     def property_by_name(self, propname):
         p = self.getPropertyEnum(propname.encode('ascii'))
         if p == UCHAR_INVALID_CODE:
@@ -762,7 +752,6 @@ class ICUCommon(object):
                                                  prop_type).decode('utf-8'))
 
         return out
-
 
     #### IDNA ####
     @memoized_property
@@ -832,7 +821,6 @@ class ICUCommon(object):
     def uidna_nameToUnicode(self):
         return self.std_icu_func(self._uidna_nameToUnicode)
 
-
     def idna_process(self, s, func, _lowlvl_func, uidna=None):
         assert isinstance(s, text_type)
         src, srclen = str_to_uchar_array_with_len(s)
@@ -873,20 +861,20 @@ class ICUCommon(object):
 
 
 KNOWN_ICU_VERSIONS = (
-    '56', # Unicode 8.0
+    '56',  # Unicode 8.0
     '55',
-    '54', # Unicode 7.0
+    '54',  # Unicode 7.0
     '53',
-    '52', # Unicode 6.3
+    '52',  # Unicode 6.3
     '51',
-    '50', # Unicode 6.2
-    '49', # Unicode 6.1
+    '50',  # Unicode 6.2
+    '49',  # Unicode 6.1
     '48',
-    '46', # Unicode 6.0  -- min version for IDNA ("Stable since ICU 4.6")
-    '44', # Unicode 5.2
-    '40', # Unicode 5.1
-    '36', # Unicode 5.0
-    '34', # Unicode 4.1
+    '46',  # Unicode 6.0  -- min version for IDNA ("Stable since ICU 4.6")
+    '44',  # Unicode 5.2
+    '40',  # Unicode 5.1
+    '36',  # Unicode 5.0
+    '34',  # Unicode 4.1
 )
 
 
