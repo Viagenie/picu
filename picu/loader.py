@@ -726,7 +726,7 @@ class ICUCommon(object):
             raise PropertyNotFound("unknown property (%s)" % propname)
         return ICUProperty(self, p)
 
-    def get_prop_value(self, cp, propname, prop_type):
+    def get_prop_value(self, cp, propname, prop_type=U_LONG_PROPERTY_NAME):
         prop = self.property_by_name(propname)
         pv = self.getIntPropertyValue(cp, prop.enum)
         return self.getPropertyValueName(prop.enum, pv, prop_type).decode('ascii')
