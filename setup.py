@@ -1,9 +1,10 @@
-#!/bin/env python2
+#!/bin/env python
+# -*- coding: utf-8 -*-
 from setuptools import setup
 
 setup(
     name="picu",
-    version='0.8',
+    version='1.0',
     author="Wil Tan",
     author_email="wil@cloudregistry.net",
     description="Python ctypes-based ICU Wrapper",

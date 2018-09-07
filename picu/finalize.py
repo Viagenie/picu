@@ -4,7 +4,7 @@ From: http://code.activestate.com/recipes/577242-calling-c-level-finalizers-with
 
 This is designed for avoiding __del__.
 """
-
+from __future__ import print_function
 import sys
 import traceback
 import weakref
@@ -26,7 +26,7 @@ def _run_finalizer(ref):
     try:
         finalizer(item)
     except Exception:
-        print >> sys.stderr, "Exception running {}:".format(finalizer)
+        print("Exception running {}:".format(finalizer), file=sys.stderr)
         traceback.print_exc()
 
 
