@@ -833,7 +833,7 @@ class ICUCommon(object):
             if idna_info.errors == 0:
                 return uchar_array_to_uni(dest[:rv])
             else:
-                raise IDNAException(idna_info.errors, _lowlvl_func.__name__ + ': ')
+                raise IDNAException(idna_info.errors, "%s on %s:" % (_lowlvl_func.__name__, s))
         elif err.value != U_BUFFER_OVERFLOW_ERROR:
             raise PICUException("%s failed with error code %d (%s)"
                                 % (_lowlvl_func, err.value, self.u_errorName(err)))
